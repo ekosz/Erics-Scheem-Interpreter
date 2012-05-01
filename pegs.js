@@ -1,20 +1,28 @@
 start =
   expression
 
-expression =
-  whiteSpace* atom:atom {return atom;}
-/ whiteSpace* "'" "(" exps:expression+ ")" {return ['quote', exps];}
-/ whiteSpace* "(" exps:expression+ ")" {return exps;}
+expression "expression" =
+  _ atom:atom {return atom;}
+/ _ "'" "(" exps:expression+ ")" {return ['quote', exps];}
+/ _ "(" exps:expression+ ")" {return exps;}
 
-atom =
+atom "atom" =
   chars:validChars+ {return chars.join("");}
 / number
 
-validChars =
+validChars "valid chars" =
   [a-zA-Z_?!+\<\>\-=@#$%^&*/.]
 
-number =
+number "number" =
   nums:[0-9]+ {return parseInt(nums.join(""), 10);}
 
-whiteSpace =
-  [ \n]
+_ = (whitespace / eol / comment)*
+
+comment "comment" =
+    ";" [^\n\r]*
+
+eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
+
+whitespace "whitespace" =
+    [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
+

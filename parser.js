@@ -41,7 +41,10 @@ SCHEEM = (function(){
         "atom": parse_atom,
         "validChars": parse_validChars,
         "number": parse_number,
-        "whiteSpace": parse_whiteSpace
+        "_": parse__,
+        "comment": parse_comment,
+        "eol": parse_eol,
+        "whitespace": parse_whitespace
       };
       
       if (startRule !== undefined) {
@@ -101,14 +104,10 @@ SCHEEM = (function(){
         var result0, result1, result2, result3, result4;
         var pos0, pos1;
         
+        reportFailures++;
         pos0 = pos;
         pos1 = pos;
-        result0 = [];
-        result1 = parse_whiteSpace();
-        while (result1 !== null) {
-          result0.push(result1);
-          result1 = parse_whiteSpace();
-        }
+        result0 = parse__();
         if (result0 !== null) {
           result1 = parse_atom();
           if (result1 !== null) {
@@ -130,12 +129,7 @@ SCHEEM = (function(){
         if (result0 === null) {
           pos0 = pos;
           pos1 = pos;
-          result0 = [];
-          result1 = parse_whiteSpace();
-          while (result1 !== null) {
-            result0.push(result1);
-            result1 = parse_whiteSpace();
-          }
+          result0 = parse__();
           if (result0 !== null) {
             if (input.charCodeAt(pos) === 39) {
               result1 = "'";
@@ -208,12 +202,7 @@ SCHEEM = (function(){
           if (result0 === null) {
             pos0 = pos;
             pos1 = pos;
-            result0 = [];
-            result1 = parse_whiteSpace();
-            while (result1 !== null) {
-              result0.push(result1);
-              result1 = parse_whiteSpace();
-            }
+            result0 = parse__();
             if (result0 !== null) {
               if (input.charCodeAt(pos) === 40) {
                 result1 = "(";
@@ -271,6 +260,10 @@ SCHEEM = (function(){
             }
           }
         }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("expression");
+        }
         return result0;
       }
       
@@ -278,6 +271,7 @@ SCHEEM = (function(){
         var result0, result1;
         var pos0;
         
+        reportFailures++;
         pos0 = pos;
         result1 = parse_validChars();
         if (result1 !== null) {
@@ -298,12 +292,17 @@ SCHEEM = (function(){
         if (result0 === null) {
           result0 = parse_number();
         }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("atom");
+        }
         return result0;
       }
       
       function parse_validChars() {
         var result0;
         
+        reportFailures++;
         if (/^[a-zA-Z_?!+<>\-=@#$%^&*\/.]/.test(input.charAt(pos))) {
           result0 = input.charAt(pos);
           pos++;
@@ -313,6 +312,10 @@ SCHEEM = (function(){
             matchFailed("[a-zA-Z_?!+<>\\-=@#$%^&*\\/.]");
           }
         }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("valid chars");
+        }
         return result0;
       }
       
@@ -320,6 +323,7 @@ SCHEEM = (function(){
         var result0, result1;
         var pos0;
         
+        reportFailures++;
         pos0 = pos;
         if (/^[0-9]/.test(input.charAt(pos))) {
           result1 = input.charAt(pos);
@@ -353,20 +357,172 @@ SCHEEM = (function(){
         if (result0 === null) {
           pos = pos0;
         }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("number");
+        }
         return result0;
       }
       
-      function parse_whiteSpace() {
+      function parse__() {
+        var result0, result1;
+        
+        result0 = [];
+        result1 = parse_whitespace();
+        if (result1 === null) {
+          result1 = parse_eol();
+          if (result1 === null) {
+            result1 = parse_comment();
+          }
+        }
+        while (result1 !== null) {
+          result0.push(result1);
+          result1 = parse_whitespace();
+          if (result1 === null) {
+            result1 = parse_eol();
+            if (result1 === null) {
+              result1 = parse_comment();
+            }
+          }
+        }
+        return result0;
+      }
+      
+      function parse_comment() {
+        var result0, result1, result2;
+        var pos0;
+        
+        reportFailures++;
+        pos0 = pos;
+        if (input.charCodeAt(pos) === 59) {
+          result0 = ";";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\";\"");
+          }
+        }
+        if (result0 !== null) {
+          result1 = [];
+          if (/^[^\n\r]/.test(input.charAt(pos))) {
+            result2 = input.charAt(pos);
+            pos++;
+          } else {
+            result2 = null;
+            if (reportFailures === 0) {
+              matchFailed("[^\\n\\r]");
+            }
+          }
+          while (result2 !== null) {
+            result1.push(result2);
+            if (/^[^\n\r]/.test(input.charAt(pos))) {
+              result2 = input.charAt(pos);
+              pos++;
+            } else {
+              result2 = null;
+              if (reportFailures === 0) {
+                matchFailed("[^\\n\\r]");
+              }
+            }
+          }
+          if (result1 !== null) {
+            result0 = [result0, result1];
+          } else {
+            result0 = null;
+            pos = pos0;
+          }
+        } else {
+          result0 = null;
+          pos = pos0;
+        }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("comment");
+        }
+        return result0;
+      }
+      
+      function parse_eol() {
         var result0;
         
-        if (/^[ \n]/.test(input.charAt(pos))) {
+        reportFailures++;
+        if (input.charCodeAt(pos) === 10) {
+          result0 = "\n";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"\\n\"");
+          }
+        }
+        if (result0 === null) {
+          if (input.substr(pos, 2) === "\r\n") {
+            result0 = "\r\n";
+            pos += 2;
+          } else {
+            result0 = null;
+            if (reportFailures === 0) {
+              matchFailed("\"\\r\\n\"");
+            }
+          }
+          if (result0 === null) {
+            if (input.charCodeAt(pos) === 13) {
+              result0 = "\r";
+              pos++;
+            } else {
+              result0 = null;
+              if (reportFailures === 0) {
+                matchFailed("\"\\r\"");
+              }
+            }
+            if (result0 === null) {
+              if (input.charCodeAt(pos) === 8232) {
+                result0 = "\u2028";
+                pos++;
+              } else {
+                result0 = null;
+                if (reportFailures === 0) {
+                  matchFailed("\"\\u2028\"");
+                }
+              }
+              if (result0 === null) {
+                if (input.charCodeAt(pos) === 8233) {
+                  result0 = "\u2029";
+                  pos++;
+                } else {
+                  result0 = null;
+                  if (reportFailures === 0) {
+                    matchFailed("\"\\u2029\"");
+                  }
+                }
+              }
+            }
+          }
+        }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("line end");
+        }
+        return result0;
+      }
+      
+      function parse_whitespace() {
+        var result0;
+        
+        reportFailures++;
+        if (/^[ \t\x0B\f\xA0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]/.test(input.charAt(pos))) {
           result0 = input.charAt(pos);
           pos++;
         } else {
           result0 = null;
           if (reportFailures === 0) {
-            matchFailed("[ \\n]");
+            matchFailed("[ \\t\\x0B\\f\\xA0\\uFEFF\\u1680\\u180E\\u2000-\\u200A\\u202F\\u205F\\u3000]");
           }
+        }
+        reportFailures--;
+        if (reportFailures === 0 && result0 === null) {
+          matchFailed("whitespace");
         }
         return result0;
       }
