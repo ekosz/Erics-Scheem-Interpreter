@@ -27,3 +27,7 @@ Supported Operations
 * `if` statements
     * Using `= < <= > >=`
 
+Playing with it
+-----
+
+Open the `index.html` and have at it!
