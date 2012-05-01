@@ -14,7 +14,7 @@ Sample code
   (if (< x 20)
     (set! x (* x x))
     error)
-  x) // => 100
+  x) ; => 100
 ```
 
 Supported Operations
