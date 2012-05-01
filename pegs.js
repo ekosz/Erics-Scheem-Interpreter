@@ -3,8 +3,8 @@ start =
 
 expression "expression" =
   _ atom:atom {return atom;}
-/ _ "'" "(" exps:expression+ ")" {return ['quote', exps];}
-/ _ "(" exps:expression+ ")" {return exps;}
+/ _ "'" "(" exps:expression+ ")" _ {return ['quote', exps];}
+/ _ "(" exps:expression+ ")" _ {return exps;}
 
 atom "atom" =
   chars:validChars+ {return chars.join("");}
@@ -25,4 +25,3 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" =
     [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
-

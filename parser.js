@@ -101,7 +101,7 @@ SCHEEM = (function(){
       }
       
       function parse_expression() {
-        var result0, result1, result2, result3, result4;
+        var result0, result1, result2, result3, result4, result5;
         var pos0, pos1;
         
         reportFailures++;
@@ -172,7 +172,13 @@ SCHEEM = (function(){
                     }
                   }
                   if (result4 !== null) {
-                    result0 = [result0, result1, result2, result3, result4];
+                    result5 = parse__();
+                    if (result5 !== null) {
+                      result0 = [result0, result1, result2, result3, result4, result5];
+                    } else {
+                      result0 = null;
+                      pos = pos1;
+                    }
                   } else {
                     result0 = null;
                     pos = pos1;
@@ -235,7 +241,13 @@ SCHEEM = (function(){
                     }
                   }
                   if (result3 !== null) {
-                    result0 = [result0, result1, result2, result3];
+                    result4 = parse__();
+                    if (result4 !== null) {
+                      result0 = [result0, result1, result2, result3, result4];
+                    } else {
+                      result0 = null;
+                      pos = pos1;
+                    }
                   } else {
                     result0 = null;
                     pos = pos1;
